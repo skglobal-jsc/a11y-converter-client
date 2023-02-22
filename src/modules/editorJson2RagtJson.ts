@@ -281,13 +281,12 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
       meta = sentences
         .filter((sentence: string) => sentence.trim())
         .map((sentence: string) => {
-          console.log(sentence)
         const htmlTagRegex = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gim;
         const aTagRegex =
           /<a.+?\s*href\s*=\s*["\']?(?<href>[^"\'\s>]+)["\']?/gi;
         return {
-          ui: sentence,
-          polly: sentence.replace(htmlTagRegex, ""),
+          ui: sentence?.trim(),
+          polly: sentence.replace(htmlTagRegex, "")?.trim(),
           ssml: "",
           user: "",
           actions: [...sentence.matchAll(aTagRegex)]

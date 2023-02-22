@@ -1,6 +1,6 @@
 {
   "name": "ragt-converter-client",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "RAGT converter for client",
   "source": "./src/index.ts",
   "main": "dist/index.js",
@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "microbundle",
+    "release": "npm publish --access=publish",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "contributors": [
