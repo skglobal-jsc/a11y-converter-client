@@ -278,7 +278,10 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
     //TODO: Paragraph, Header
     if ([BLOCK_TYPE.HEADER, BLOCK_TYPE.PARAGRAPH].includes(block.type)) {
       const sentences = splitSentences(block.data.text, lang);
-      meta = sentences.map((sentence: any) => {
+      meta = sentences
+        .filter((sentence: string) => sentence.trim())
+        .map((sentence: string) => {
+          console.log(sentence)
         const htmlTagRegex = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gim;
         const aTagRegex =
           /<a.+?\s*href\s*=\s*["\']?(?<href>[^"\'\s>]+)["\']?/gi;

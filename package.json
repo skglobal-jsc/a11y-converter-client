@@ -1,6 +1,6 @@
 {
   "name": "ragt-converter-client",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "RAGT converter for client",
   "source": "./src/index.ts",
   "main": "dist/index.js",
