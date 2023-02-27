@@ -41,17 +41,20 @@ const getMetaByDfs = (root: any, parentId: any, arr: any) => {
     sentences.forEach((sentence: any) => {
       const htmlTagRegex = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gim;
       const aTagRegex = /<a.+?\s*href\s*=\s*["\']?(?<href>[^"\'\s>]+)["\']?/gi;
-      arr.push({
-        parentId,
-        id,
-        ui: sentence,
-        polly: sentence.replace(htmlTagRegex, ""),
-        ssml: "",
-        user: "",
-        actions: [...sentence.matchAll(aTagRegex)].map(
-          (item) => item.groups?.href
-        ),
-      });
+
+      if (sentence.trim()) {
+        arr.push({
+          parentId,
+          id,
+          ui: sentence,
+          polly: sentence.replace(htmlTagRegex, ""),
+          ssml: "",
+          user: "",
+          actions: [...sentence.matchAll(aTagRegex)].map(
+            (item) => item.groups?.href
+          ),
+        });
+      }
     });
     root.items.forEach((item: any) => {
       getMetaByDfs(item, id, arr);

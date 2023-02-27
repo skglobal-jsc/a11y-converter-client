@@ -198,9 +198,9 @@ export const ragtJson2A11Y = (
     }
     //TODO: Image
     if (block.type === BLOCK_TYPE.IMAGE) {
-      // $('body', htmlDOM).append(
-      //   `<p tabindex="0" class="annotation">${block.data.caption}</p>`
-      // );
+      $('body', htmlDOM).append(
+        `<p tabindex="0" class="annotation">${block.data.caption}</p>`
+      );
       $("body", htmlDOM).append(
         `<img id="${block.id}" src="${block.data?.file?.url || ""}" alt="${
           block.data.caption
