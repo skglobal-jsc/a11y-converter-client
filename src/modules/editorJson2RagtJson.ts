@@ -41,20 +41,17 @@ const getMetaByDfs = (root: any, parentId: any, arr: any) => {
     sentences.forEach((sentence: any) => {
       const htmlTagRegex = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gim;
       const aTagRegex = /<a.+?\s*href\s*=\s*["\']?(?<href>[^"\'\s>]+)["\']?/gi;
-
-      if (sentence.trim()) {
-        arr.push({
-          parentId,
-          id,
-          ui: sentence,
-          polly: sentence.replace(htmlTagRegex, ""),
-          ssml: "",
-          user: "",
-          actions: [...sentence.matchAll(aTagRegex)].map(
-            (item) => item.groups?.href
-          ),
-        });
-      }
+      arr.push({
+        parentId,
+        id,
+        ui: sentence,
+        polly: sentence.replace(htmlTagRegex, ""),
+        ssml: "",
+        user: "",
+        actions: [...sentence.matchAll(aTagRegex)].map(
+          (item) => item.groups?.href
+        ),
+      });
     });
     root.items.forEach((item: any) => {
       getMetaByDfs(item, id, arr);
@@ -282,13 +279,12 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
     if ([BLOCK_TYPE.HEADER, BLOCK_TYPE.PARAGRAPH].includes(block.type)) {
       const sentences = splitSentences(block.data.text, lang);
       meta = sentences
-        .filter((sentence: string) => sentence.trim())
         .map((sentence: string) => {
         const htmlTagRegex = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gim;
         const aTagRegex =
           /<a.+?\s*href\s*=\s*["\']?(?<href>[^"\'\s>]+)["\']?/gi;
         return {
-          ui: sentence?.trim(),
+          ui: sentence.replace('\n', '<br />'),
           polly: sentence.replace(htmlTagRegex, "")?.trim(),
           ssml: "",
           user: "",
