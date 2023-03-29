@@ -7,6 +7,22 @@ import {
   _applySocialMeta,
 } from "../utils/css";
 
+declare type PlayerBarOption = {
+  show?: boolean
+  ragtId?: string
+  ragtClientId?: string
+}
+
+declare type MetaOptions = {
+  title?: string;
+  cssLinks?: string[];
+  meta?: {};
+  socialMeta?: {};
+  lang?: string;
+  favicon?: string;
+  googleAnalyticsId?: string;
+};
+
 const ragtPlayerInfo = {
   name: "wc-ragt-player",
   script:
@@ -142,7 +158,7 @@ export const ragtJson2A11Y = (
     if (block.type === BLOCK_TYPE.PARAGRAPH) {
       $("body", htmlDOM).append(
         `<p id="${block.id}" tabindex="0">
-          ${(block?.meta || [])?.map((item: AnyObject) => item.ui)?.join(" ")}
+          ${(block?.meta || [])?.map((item: any) => item.ui)?.join(" ")}
         </p>`
       );
     }
@@ -150,7 +166,7 @@ export const ragtJson2A11Y = (
     if (block.type === BLOCK_TYPE.HEADER) {
       $("body", htmlDOM).append(
         `<h${block.data.level} id="${block.id}" tabindex="0">
-          ${(block?.meta || [])?.map((item: AnyObject) => item.ui)?.join(" ")}
+          ${(block?.meta || [])?.map((item: any) => item.ui)?.join(" ")}
         </h${block.data.level}>`
       );
     }
@@ -158,7 +174,7 @@ export const ragtJson2A11Y = (
     //TODO: List
     const dfsRender = (
       htmlDOM: Document,
-      parentNode: AnyObject,
+      parentNode: any,
       style: string,
       items: any,
       id?: string
@@ -211,18 +227,12 @@ export const ragtJson2A11Y = (
     //TODO: Table
     if (block.type === BLOCK_TYPE.TABLE) {
       $("body", htmlDOM).append(
-        `<p id="${block.meta[0].id}" tabindex="0" class="annotation">${block.meta[0].polly}</p>`
+        `<p id="${block.meta[0].id}" tabindex="0" class="annotation">${block.meta[0].ui}</p>`
       );
-      const bodyTable = block.meta.reduce(
-        (res: string, cur: AnyObject, idx: number) => {
-          if (idx !== block.meta.length - 1) {
-            return res.concat(cur.ui);
-          } else {
-            return res;
-          }
-        },
-        ""
-      );
+      let bodyTable = ''
+      for(let i = 1; i < block?.meta?.length - 1; i++) {
+        bodyTable += block?.meta[i]?.ui || ''
+      }
       const table = `<table id="${block.id}">${bodyTable}</table>`;
       $("body", htmlDOM).append(table);
       $("body", htmlDOM).append(
@@ -235,12 +245,12 @@ export const ragtJson2A11Y = (
   return `<!DOCTYPE html>${htmlDOM.documentElement.outerHTML}`;
 };
 
-export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
-  const getListAnnotation = (data: AnyObject) => {
+export const editorJson2RagtJson = (editorJson: any, lang = "en") => {
+  const getListAnnotation = (data: any) => {
     let itemsArr: any = [];
     dfsTree(data, itemsArr);
 
-    itemsArr = itemsArr.filter((item: AnyObject) => item);
+    itemsArr = itemsArr.filter((item: any) => item);
     if (lang === "ja") {
       return `これは${
         data.style === "ordered" ? "番号付き" : "箇条書きの"
@@ -261,36 +271,46 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
       itemsArr.length - data.items.length
     } sub items`;
   };
+
   const getImageAnnotation = (alt: string) => {
-    if (lang === "ja") {
-      return `ここに「${alt}」の画像があります。`;
+    if (alt) {
+      const annotation: any = {
+        ja: `ここに<span class="annotation-text">「${alt}」</span>の画像があります。`,
+        vi: `Đây là hình ảnh về <span class="annotation-text">${alt}</span>.`,
+        en: `This image is about <span class="annotation-text">${alt}</span>.`,
+      };
+      return annotation[lang] || annotation.en;
+    } else {
+      const annotation: any = {
+        ja: 'ここに画像があります。',
+        vi: 'Đây là một bức hình',
+        en: 'There is a image',
+      };
+      return annotation[lang] || annotation.en;
     }
-    if (lang === "vi") {
-      return `Đây là hình ảnh về ${alt}`;
-    }
-    return `This image is about ${alt}.`;
   };
   
   const buildMetaTable = (data: any) => {
-    const content = [...data.content];
     const withHeadings = data.withHeadings;
+    const content = [...(withHeadings ? [data.headers] : []), ...data.content];
     const totalRows = content?.length ?? 0;
     const totalCols = content[0]?.length ?? 0;
+    
     if (lang === 'ja') {
-      let annotation = `この下に、縦${totalRows}行、横${totalCols}列の表があります。\n`;
+      let annotation = `この下に、<span class="annotation-text">縦${totalRows}行</span>、<span class="annotation-text">横${totalCols}列</span>、の表(ひょう)があります。\n`;
       if (data.caption) {
-        annotation += `表のタイトルは${data.caption}、です。\n`;
+        annotation += `表(ひょう)のタイトルは、<span class="annotation-text">${data.caption}</span>、です。\n`;
       }
-      if (data.headers?.length) {
-        annotation += `見出し行は左から${data.headers.join('、')}です。`;
-      } else if (withHeadings) {
-        annotation += `見出し行は左から${content[0].join('、')}です。`;
-      }
+      // if (data.headers?.length) {
+      //   annotation += `見出し行は左から${data.headers.join('、')}です。`;
+      // } else if (withHeadings) {
+      //   annotation += `見出し行は左から${content[0].join('、')}です。`;
+      // }
       const meta: any = [
         {
           id: Math.random().toString(36).substring(7),
           ui: annotation,
-          polly: annotation,
+          polly: $(annotation)?.text(),
           ssml: '',
           user: '',
           actions: [],
@@ -298,12 +318,14 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
         },
       ];
       content.forEach((row, idx) => {
-        const polly =
+        let polly =
           idx === 0
             ? `データの1行目、${row.join('、')}、`
             : idx === row.length - 1
             ? `${idx + 1}行目、${row.join('、')}です。`
             : `${idx + 1}行目、${row.join('、')}、`;
+
+          polly = $(polly).text()
         let ui = `<tr tabindex="0" aria-label="${polly}">`;
         row.forEach((cell: string) => {
           ui =
@@ -331,20 +353,20 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
       });
       return meta;
     } else if (lang === 'vi') {
-      let annotation = `Đây là dữ liệu dạng bảng, có ${totalRows} dòng, ${totalCols} cột.\n`;
+      let annotation = `Đây là dữ liệu dạng bảng, <span class="annotation-text">có ${totalRows} dòng</span>, <span class="annotation-text">${totalCols} cột</span>.\n`;
       if (data.caption) {
-        annotation += `Tiêu đề của bảng là ${data.caption}.\n`;
+        annotation += `Tiêu đề của bảng là <span class="annotation-text">${data.caption}</span>.\n`;
       }
-      if (data.headers?.length) {
-        annotation += `Các ô tiêu đề của bảng là ${data.headers.join(', ')}.`;
-      } else if (withHeadings) {
-        annotation += `Các ô tiêu đề của bảng là ${content[0].join(', ')}.`;
-      }
+      // if (data.headers?.length) {
+      //   annotation += `Các ô tiêu đề của bảng là ${data.headers.join(', ')}.`;
+      // } else if (withHeadings) {
+      //   annotation += `Các ô tiêu đề của bảng là ${content[0].join(', ')}.`;
+      // }
       const meta: any = [
         {
           id: Math.random().toString(36).substring(7),
           ui: annotation,
-          polly: annotation,
+          polly: $(annotation).text(),
           ssml: '',
           user: '',
           actions: [],
@@ -352,10 +374,12 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
         },
       ];
       content.forEach((row, idx) => {
-        const polly =
+        let polly =
           idx === 0
             ? `Dữ liệu hàng thứ nhất là ${row.join(', ')}.`
             : `Hàng thứ ${idx + 1}: ${row.join(', ')}.`;
+        
+        polly = $(polly).text()
         let ui = `<tr tabindex="0" aria-label="${polly}">`;
         row.forEach((cell: string) => {
           ui =
@@ -383,20 +407,20 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
       });
       return meta;
     } else {
-      let annotation = `This is table with ${totalRows} rows, ${totalCols} columns.\n`;
+      let annotation = `This is table with <span class="annotation-text">${totalRows} rows</span>, <span class="annotation-text">${totalCols} columns</span>.\n`;
       if (data.caption) {
-        annotation += `The title of the table is ${data.caption}.\n`;
+        annotation += `The title of the table is <span class="annotation-text">${data.caption}</span>.\n`;
       }
-      if (data.headers?.length) {
-        annotation += `The table headers are ${data.headers.join(', ')}.`;
-      } else if (withHeadings) {
-        annotation += `The table headers are ${content[0].join(', ')}.`;
-      }
+      // if (data.headers?.length) {
+      //   annotation += `The table headers are ${data.headers.join(', ')}.`;
+      // } else if (withHeadings) {
+      //   annotation += `The table headers are ${content[0].join(', ')}.`;
+      // }
       const meta: any = [
         {
           id: Math.random().toString(36).substring(7),
           ui: annotation,
-          polly: annotation,
+          polly: $(annotation).text(),
           ssml: '',
           user: '',
           actions: [],
@@ -404,10 +428,12 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
         },
       ];
       content.forEach((row, idx) => {
-        const polly =
+        let polly =
           idx === 0
             ? `The first line of data is ${row.join(', ')}.`
             : `Line ${idx + 1}: ${row.join(', ')}.`;
+        
+        polly = $(polly).text()
         let ui = `<tr tabindex="0" aria-label="${polly}">`;
         row.forEach((cell: string) => {
           ui =
@@ -438,12 +464,12 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
   };
 
   //TODO: Generate meta data for each block
-  const blocks = editorJson.blocks.map((block: AnyObject) => {
+  const blocks = editorJson.blocks.map((block: any) => {
     let meta: any = [];
     //TODO: Paragraph, Header
     if ([BLOCK_TYPE.HEADER, BLOCK_TYPE.PARAGRAPH].includes(block.type)) {
       const sentences = splitSentences(block.data.text, lang);
-      meta = sentences.map((sentence: AnyObject) => {
+      meta = sentences.map((sentence: any) => {
         const htmlTagRegex = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gim;
         const aTagRegex =
           /<a.+?\s*href\s*=\s*["\']?(?<href>[^"\'\s>]+)["\']?/gi;
@@ -481,8 +507,8 @@ export const editorJson2RagtJson = (editorJson: AnyObject, lang = "en") => {
     if (block.type === BLOCK_TYPE.IMAGE) {
       meta = [
         {
-          ui: block.data.caption,
-          polly: getImageAnnotation(block.data.caption),
+          ui: getImageAnnotation(block.data.caption),
+          polly: $(getImageAnnotation(block.data.caption))?.text(),
           ssml: "",
           user: "",
           actions: [],

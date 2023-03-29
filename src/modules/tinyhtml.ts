@@ -8,6 +8,23 @@ import {
   EDITOR_BLOCK_TAGS,
 } from "../constant/index";
 
+declare type ProcessOptions = {
+  removeComments?: boolean;
+  removeEmptyElements?: boolean;
+  removeScriptTypeAttributes?: boolean;
+  removeOptionalTags?: string[];
+  removeSmallImages?: {
+    minWidth: number;
+    minHeight: number;
+  };
+  url?: string; // url of the page
+  contentSelectors?: string[]; // selector of the content
+  hooks?: {
+    before?: string;
+    after?: string;
+  };
+};
+
 const convertRelativeUrlsToAbsolute = (baseUrl: string, href: string) => {
   const parsedUrl = url.parse(href);
   if (!parsedUrl.host) {

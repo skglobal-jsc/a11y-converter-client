@@ -15,7 +15,7 @@ const cleanInline = (html: string) => {
 
 const parseListItems = (items: any) => {
   const res: any = [];
-  items.forEach((item: AnyObject) => {
+  items.forEach((item: any) => {
     if (item.nodeName === "LI") {
       res.push({
         content: cleanInline($(item).html()),
