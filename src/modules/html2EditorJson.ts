@@ -5,6 +5,7 @@ import {
   HEADER_LEVEL,
   LIST_STYLE,
 } from "../constant/index";
+import { buildMetaOptions } from '../utils/helper'
 
 const cleanInline = (html: string) => {
   // return sanitizeHtml(html, {
@@ -35,7 +36,7 @@ const parseListItems = (items: any) => {
   return res;
 };
 
-export const html2EditorJson = (html: string) => {
+const html2EditorJson = (html: string) => {
   let res: { blocks: any } = {
     blocks: [],
   };
@@ -54,7 +55,7 @@ export const html2EditorJson = (html: string) => {
     image: $('meta[property="og:image"]', htmlDOM)?.attr("content"),
     type: $('meta[property="og:type"]', htmlDOM)?.attr("content"),
   };
-  // const metaOpts = buildMetaOptions(meta);
+  const metaOpts = buildMetaOptions(meta);
   let groupUnSupportTag: string[] = [];
   $("body", htmlDOM)
     .contents()
@@ -150,18 +151,14 @@ export const html2EditorJson = (html: string) => {
                       .map((_, i) => (row[i] ? row[i] : ""))
                   : row;
               });
-            const firstRowHeading =
-              $(firstRow)?.find("th")?.length === totalCols;
-            const headers = Array.from($(el).find("th"))?.map((th) =>
-              $(th)?.html()
-            );
+            const isHeaders = $(firstRow)?.find("th")?.length > 0;
             const data = {
-              withHeadings: !!firstRowHeading,
+              withHeadings: isHeaders,
               content,
               ...(captionElement.length && {
                 caption: $(captionElement).html()?.trim(),
               }),
-              headers,
+              // headers,
             };
             res.blocks.push({
               id,
@@ -177,8 +174,11 @@ export const html2EditorJson = (html: string) => {
         }
       }
     });
+
   return {
     json: res,
-    meta,
+    meta: metaOpts,
   };
 };
+
+export default html2EditorJson

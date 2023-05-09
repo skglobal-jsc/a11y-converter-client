@@ -38,15 +38,7 @@ const reduceHtml = (htmlDOM: any, opt: any) => {
   $("head", htmlDOM)
     .contents()
     .each((i, el) => {
-      if (el.nodeType === 1) {
-        // remove  all except title
-        // we need to keep title because it is used to generate the slug
-        if (el.nodeName !== "TITLE") {
-          $(el).remove();
-        }
-      } else {
-        $(el).remove();
-      }
+      // handle more...
     });
   $("body *", htmlDOM)
     .contents()
@@ -101,7 +93,7 @@ const reduceHtml = (htmlDOM: any, opt: any) => {
         // remove empty tags with cheerio, but also keep images:
         if (
           opt.removeEmptyElements &&
-          nodeName !== "img" &&
+          !['td', 'img'].includes(nodeName) &&
           $(el).find("img").length === 0 &&
           $(el).text().trim().length === 0
         ) {
@@ -175,7 +167,7 @@ const reduceHtml = (htmlDOM: any, opt: any) => {
   });
 };
 
-export const tinyhtml = (html: string, opt?: ProcessOptions) => {
+const tinyhtml = (html: string, opt?: ProcessOptions) => {
   const options: ProcessOptions = {
     removeComments: true,
     removeEmptyElements: true,
@@ -196,30 +188,13 @@ export const tinyhtml = (html: string, opt?: ProcessOptions) => {
     .replace(/&gt;/g, ">");
 
   const htmlDOM = new DOMParser().parseFromString(cleanedHtml, "text/html");
-  // execute the cleaning process
-  // if (options.hooks?.before) {
-  //   await executeHookFn(options.hooks.before, $);
-  // }
-
-  // select the content of the page using contentSelectors. If doesn't exist then select the whole body
-  // if (options.contentSelectors && options.contentSelectors.length > 0) {
-  //   const $content = $(options.contentSelectors!.join(','));
-  //   const $body = cheerio.load('<body></body>', { decodeEntities: true }, true);
-  //   // append the content to the new body
-  //   $body('body').append($content);
-  //   // replace the body with the new body
-  //   $('body').replaceWith($body('body'));
-  // }
-
+  
   // clean and reduce html
   reduceHtml(htmlDOM, options);
-
-  // execute the after hook
-  // if (options.hooks?.after) {
-  //   await executeHookFn(options.hooks.after, $);
-  // }
 
   return {
     html: $("html", htmlDOM)[0].outerHTML,
   };
 };
+
+export default tinyhtml

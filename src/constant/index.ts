@@ -99,3 +99,10 @@ export const EDITOR_BLOCK_TAGS = [
   "a",
   "img",
 ];
+
+// All class name
+export const CLASS_NAME = {
+  highlightText: 'highlight-text',
+  tableHeader: 'tb-header',
+  annotation: 'annotation'
+}
